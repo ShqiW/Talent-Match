@@ -160,7 +160,7 @@ function App() {
           <div
             className="grid-layout"
             style={{
-              gridTemplateRows: selectedCandidate ? '0fr 1fr' : '1fr 1fr',
+              gridTemplateRows: selectedCandidate ? '0fr 1fr' : 'auto 1fr',
               gridTemplateAreas: selectedCandidate
                 ? '"empty empty" "results preview"'
                 : '"job-desc upload" "results preview"'
@@ -171,7 +171,9 @@ function App() {
               className="grid-item"
               style={{
                 gridArea: 'job-desc',
-                display: selectedCandidate ? 'none' : 'flex'
+                display: selectedCandidate ? 'none' : 'flex',
+                gap: '1rem',
+                alignItems: 'stretch'
               }}
             >
               <InvitationCode value={invitationCode} onChange={setInvitationCode} />
@@ -204,8 +206,7 @@ function App() {
             <div
               className="grid-item"
               style={{
-                gridArea: 'results',
-                display: !results.length ? 'none' : 'flex'
+                gridArea: 'results'
               }}
             >
               <AnalysisResults
@@ -221,8 +222,7 @@ function App() {
             <div
               className="grid-item"
               style={{
-                gridArea: 'preview',
-                display: !results.length ? 'none' : 'flex'
+                gridArea: 'preview'
               }}
             >
               <ResumePreview selectedCandidate={selectedCandidate} />

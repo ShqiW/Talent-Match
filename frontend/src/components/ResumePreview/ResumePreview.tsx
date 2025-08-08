@@ -37,7 +37,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ selectedCandidate }) => {
                   style={{ border: 'none' }}
                 />
               ) : (
-                <p>{selectedCandidate.resume_text}</p>
+                <p>{selectedCandidate.info}</p>
               )}
             </div>
           </div>
