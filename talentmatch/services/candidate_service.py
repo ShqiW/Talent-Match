@@ -3,14 +3,15 @@
 """
 from typing import List, Dict, Any
 from talentmatch.models.candidate import Candidate, CandidateStorage
-from talentmatch.utils import CandidateProcessor
+from talentmatch.etc.embeddingprocessor import EmbeddingProcessor
+from talentmatch.utils import process_candidates
 
 
 class CandidateService:
     """候选人服务类"""
 
-    def __init__(self, candidate_processor: CandidateProcessor):
-        self.candidate_processor = candidate_processor
+    def __init__(self, embedding_processor: EmbeddingProcessor):
+        self.embedding_processor = embedding_processor
         self.storage = CandidateStorage()
 
     def add_candidates_from_data(
@@ -22,8 +23,8 @@ class CandidateService:
             raise ValueError("No candidates provided")
 
         # 处理候选人数据
-        processed_candidates = self.candidate_processor.process_candidates(
-            candidates_data)
+        processed_candidates = process_candidates(self.embedding_processor,
+                                                  candidates_data)
 
         # 添加到存储
         added_count = self.storage.add_candidates(processed_candidates)
@@ -41,8 +42,8 @@ class CandidateService:
             raise ValueError("No files provided")
 
         # 处理候选人数据
-        processed_candidates = self.candidate_processor.process_candidates(
-            files_data)
+        processed_candidates = process_candidates(self.embedding_processor,
+                                                  files_data)
 
         if not processed_candidates:
             raise ValueError("No valid candidates found in uploaded files")

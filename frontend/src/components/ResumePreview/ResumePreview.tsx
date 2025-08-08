@@ -26,6 +26,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ selectedCandidate }) => {
                 )}
               </div>
             </div>
+            {/* <div>{selectedCandidate.aiSummary}</div> */}
             <div className="preview-text">
               {selectedCandidate.resume ? (
                 <embed
@@ -36,7 +37,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ selectedCandidate }) => {
                   style={{ border: 'none' }}
                 />
               ) : (
-                <p>No resume available.</p>
+                <p>{selectedCandidate.resume_text}</p>
               )}
             </div>
           </div>

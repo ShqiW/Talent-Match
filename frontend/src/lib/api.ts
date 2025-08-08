@@ -23,7 +23,7 @@ const getApiBaseUrl = () => {
 };
 
 // const API_BASE_URL = getApiBaseUrl();
-const API_BASE_URL=""
+const API_BASE_URL = ""
 
 console.log('API Base URL:', API_BASE_URL);
 console.log('Current location:', window.location.href);
@@ -38,6 +38,7 @@ export interface RecommendationRequest {
   candidates: Candidate[];
   top_k?: number;
   min_similarity?: number;
+  invitation_code?: string;
 }
 
 export interface RecommendationResponse {
@@ -93,6 +94,7 @@ class ApiService {
   async getRecommendations(
     jobDescription: string,
     candidates: Candidate[],
+    invitationCode?: string,
     options: { top_k?: number; min_similarity?: number } = {}
   ): Promise<ApiResponse<RecommendationResponse>> {
 
@@ -106,6 +108,10 @@ class ApiService {
       })),
       ...options
     };
+
+    if (invitationCode) {
+      (payload as RecommendationRequest).invitation_code = invitationCode;
+    }
 
     console.log('Sending recommendation request with payload:', payload);
 

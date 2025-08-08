@@ -10,12 +10,12 @@ import {
   ResumeUpload,
   AnalysisResults,
   ResumePreview,
-  ApiTest
 } from './components'
 
 function App() {
   const [jobDescription, setJobDescription] = useState('')
   const [candidates, setCandidates] = useState<Candidate[]>([])
+  const [invitationCode, setInvitationCode] = useState('')
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -79,7 +79,7 @@ function App() {
       id: `candidate-${Date.now()}`,
       name: `Candidate ${candidates.length + 1}`,
       // convert text to base64 string
-      resume: btoa(unescape(encodeURIComponent(text))), // encode text to Base64
+      resume: '', // encode text to Base64
       info: text
     }
     setCandidates(prev => [...prev, newCandidate])
@@ -97,7 +97,12 @@ function App() {
 
     setIsProcessing(true)
     try {
-      const processedResults = await processCandidatesWithAPI(candidates, jobDescription, setProgress)
+      const processedResults = await processCandidatesWithAPI(
+        candidates,
+        jobDescription,
+        setProgress,
+        invitationCode,
+      )
       setResults(processedResults)
     } catch (error) {
       console.error('Processing failed:', error)
@@ -128,12 +133,8 @@ function App() {
       <div className="container">
         <Header />
 
-        {/* API Test Component */}
-        <ApiTest />
-
         {/* 2x2 Grid Layout */}
-        <div display='block'>
-          {/* Collapse JobDescription and ResumeUpload when a candidate is selected */}
+        <div className="grid-layout-wrapper">
           {selectedCandidate && (
             <button
               style={{ marginBottom: '1rem' }}
@@ -142,55 +143,79 @@ function App() {
               Show Job Description & Resume Upload
             </button>
           )}
-          <div style={{ display: selectedCandidate ? 'none' : 'flex' }}>
-            <JobDescription
-              jobDescription={jobDescription}
-              onJobDescriptionChange={setJobDescription}
-            />
 
-            <ResumeUpload
-              candidates={candidates}
-              onFileUpload={handleFileUpload}
-              onTextInput={handleTextInput}
-              onRemoveCandidate={removeCandidate}
-              onAnalyze={handleAnalyze}
-              onClearAll={clearAll}
-              isProcessing={isProcessing}
-              jobDescription={jobDescription}
-            />
+          <div
+            className="grid-layout"
+            style={{
+              gridTemplateRows: selectedCandidate ? '0fr 1fr' : '1fr 1fr',
+              gridTemplateAreas: selectedCandidate
+                ? '"empty empty" "results preview"'
+                : '"job-desc upload" "results preview"'
+            }}
+          >
+            {/* Top Row - Job Description and Upload */}
+            <div
+              className="grid-item"
+              style={{
+                gridArea: 'job-desc',
+                display: selectedCandidate ? 'none' : 'flex'
+              }}
+            >
+              <JobDescription
+                jobDescription={jobDescription}
+                onJobDescriptionChange={setJobDescription}
+                invitationCode={invitationCode}
+                onInvitationCodeChange={setInvitationCode}
+              />
+            </div>
+
+            <div
+              className="grid-item"
+              style={{
+                gridArea: 'upload',
+                display: selectedCandidate ? 'none' : 'flex'
+              }}
+            >
+              <ResumeUpload
+                candidates={candidates}
+                onFileUpload={handleFileUpload}
+                onTextInput={handleTextInput}
+                onRemoveCandidate={removeCandidate}
+                onAnalyze={handleAnalyze}
+                onClearAll={clearAll}
+                isProcessing={isProcessing}
+                jobDescription={jobDescription}
+              />
+            </div>
+
+            {/* Bottom Row - Results and Preview */}
+            <div
+              className="grid-item"
+              style={{
+                gridArea: 'results',
+                display: !results.length ? 'none' : 'flex'
+              }}
+            >
+              <AnalysisResults
+                results={results}
+                isProcessing={isProcessing}
+                progress={progress}
+                candidates={candidates}
+                selectedCandidate={selectedCandidate}
+                onCandidateClick={handleCandidateClick}
+              />
+            </div>
+
+            <div
+              className="grid-item"
+              style={{
+                gridArea: 'preview',
+                display: !results.length ? 'none' : 'flex'
+              }}
+            >
+              <ResumePreview selectedCandidate={selectedCandidate} />
+            </div>
           </div>
-
-          {/*           
-          <JobDescription
-            jobDescription={jobDescription}
-            onJobDescriptionChange={setJobDescription}
-          />
-
-          <ResumeUpload
-            candidates={candidates}
-            onFileUpload={handleFileUpload}
-            onTextInput={handleTextInput}
-            onRemoveCandidate={removeCandidate}
-            onAnalyze={handleAnalyze}
-            onClearAll={clearAll}
-            isProcessing={isProcessing}
-            jobDescription={jobDescription}
-          /> */}
-
-          {/* Analysis Results and Resume Preview */}
-          <div style={{ display: results ? 'flex' : 'none' }}>
-            <AnalysisResults
-              results={results}
-              isProcessing={isProcessing}
-              progress={progress}
-              candidates={candidates}
-              selectedCandidate={selectedCandidate}
-              onCandidateClick={handleCandidateClick}
-            />
-
-            <ResumePreview selectedCandidate={selectedCandidate} />
-          </div>
-
         </div>
       </div>
     </div>

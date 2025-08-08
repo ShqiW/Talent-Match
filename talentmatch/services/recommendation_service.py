@@ -2,63 +2,64 @@
 推荐业务逻辑服务
 """
 from typing import List, Dict, Any
-from talentmatch.models.candidate import Candidate
-from talentmatch.utils import RecommendationEngine, CandidateProcessor
+from talentmatch.etc.recommendengine import RecommendationEngine
+from talentmatch.utils import process_candidates
 
 
 class RecommendationService:
     """推荐服务类"""
 
-    def __init__(self, recommendation_engine: RecommendationEngine,
-                 candidate_processor: CandidateProcessor):
-        self.recommendation_engine = recommendation_engine
-        self.candidate_processor = candidate_processor
-
-    def get_recommendations(
+    def __init__(
         self,
-        job_description: str,
-        candidates_data: List[Dict[str, Any]] = None,
-        top_k: int = 10,
-        min_similarity: float = 0.5,
-    ) -> Dict[str, Any]:
-        """获取候选人推荐"""
-        if not job_description.strip():
-            raise ValueError("Job description is required")
+        recommendation_engine: RecommendationEngine,
+    ):
+        self.recommendation_engine = recommendation_engine
 
-        # 确定使用哪些候选人数据
-        if candidates_data:
-            # 使用前端传入的候选人数据
-            print(f"使用前端传入的 {len(candidates_data)} 个候选人数据")
-            candidates_to_process = candidates_data
-            use_stored_candidates = False
-        else:
-            # 使用已存储的候选人数据
-            print("使用已存储的候选人数据")
-            candidates_to_process = []
-            use_stored_candidates = True
+    # def get_recommendations(
+    #     self,
+    #     job_description: str,
+    #     candidates_data: List[Dict[str, Any]] = None,
+    #     top_k: int = 10,
+    #     min_similarity: float = 0.5,
+    # ) -> Dict[str, Any]:
+    #     """获取候选人推荐"""
+    #     if not job_description.strip():
+    #         raise ValueError("Job description is required")
 
-        # 处理候选人数据（如果需要）
-        if not use_stored_candidates:
-            processed_candidates = self.candidate_processor.process_candidates(
-                candidates_to_process)
-        else:
-            processed_candidates = candidates_to_process
+    #     # 确定使用哪些候选人数据
+    #     if candidates_data:
+    #         # 使用前端传入的候选人数据
+    #         print(f"使用前端传入的 {len(candidates_data)} 个候选人数据")
+    #         candidates_to_process = candidates_data
+    #         use_stored_candidates = False
+    #     else:
+    #         # 使用已存储的候选人数据
+    #         print("使用已存储的候选人数据")
+    #         candidates_to_process = []
+    #         use_stored_candidates = True
 
-        # 获取推荐
-        recommendations = self.recommendation_engine.find_top_candidates(
-            job_description=job_description,
-            candidates=processed_candidates,
-            top_k=top_k,
-            min_similarity=min_similarity)
+    #     # 处理候选人数据（如果需要）
+    #     if not use_stored_candidates:
+    #         processed_candidates = self.candidate_processor.process_candidates(
+    #             candidates_to_process)
+    #     else:
+    #         processed_candidates = candidates_to_process
 
-        return {
-            'job_description': job_description,
-            'total_candidates': len(processed_candidates),
-            'recommendations_count': len(recommendations),
-            'recommendations': recommendations,
-            'data_source':
-            'frontend' if not use_stored_candidates else 'stored'
-        }
+    #     # 获取推荐
+    #     recommendations = self.recommendation_engine.find_top_candidates(
+    #         job_description=job_description,
+    #         candidates=processed_candidates,
+    #         top_k=top_k,
+    #         min_similarity=min_similarity)
+
+    #     return {
+    #         'job_description': job_description,
+    #         'total_candidates': len(processed_candidates),
+    #         'recommendations_count': len(recommendations),
+    #         'recommendations': recommendations,
+    #         'data_source':
+    #         'frontend' if not use_stored_candidates else 'stored'
+    #     }
 
     def match_candidates_realtime(
         self,
@@ -82,13 +83,18 @@ class RecommendationService:
         )
 
         # 处理候选人数据
-        processed_candidates = self.candidate_processor.process_candidates(
-            candidates_data)
+        processed_candidates = process_candidates(
+            self.recommendation_engine.embedding_processor,
+            candidates_data,
+        )
 
         if not processed_candidates:
             return {
                 'message': 'No valid candidates found in the provided data',
-                'recommendations': []
+                'top_candidates': [],
+                'total_candidates': 0,
+                'processing_time': 'real-time',
+                'data_source': 'frontend'
             }
 
         # 获取推荐

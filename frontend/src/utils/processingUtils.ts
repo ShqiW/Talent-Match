@@ -4,7 +4,8 @@ import { apiService } from '../lib/api';
 export const processCandidatesWithAPI = async (
   candidates: Candidate[],
   jobDescription: string,
-  setProgress: (progress: number) => void
+  setProgress: (progress: number) => void,
+  invitationCode?: string,
 ): Promise<Candidate[]> => {
   setProgress(0);
 
@@ -19,7 +20,11 @@ export const processCandidatesWithAPI = async (
     setProgress(20);
 
     // 调用推荐API
-    const response = await apiService.getRecommendations(jobDescription, candidates);
+    const response = await apiService.getRecommendations(
+      jobDescription,
+      candidates,
+      invitationCode,
+    );
 
     if (response.error) {
       console.error('API request failed:', response.error);
@@ -32,16 +37,18 @@ export const processCandidatesWithAPI = async (
 
     setProgress(80);
 
-    // 转换API响应为前端格式
-    const processedCandidates: Candidate[] = response.data.top_candidates.map((candidate, index) => ({
-      id: candidate.id,
-      name: candidate.name,
-      // resume: candidates.find(c => c.id === candidate.id)?.resume || '',
-      resume: candidate.annotation,
-      similarityScore: candidate.similarity_score,
-      aiSummary: candidate.ai_summary,
-      rank: candidate.rank
-    }));
+    // 转换API响应为前端格式（兼容后端可能返回空或老字段名）
+    const topCandidates = (response.data as any).top_candidates || [];
+    const processedCandidates: Candidate[] = Array.isArray(topCandidates)
+      ? topCandidates.map((candidate: any) => ({
+        id: candidate.id,
+        name: candidate.name,
+        resume: candidate.resume,
+        info: candidate.resume_text || '',
+        similarityScore: candidate.similarity_score,
+        aiSummary: candidate.summary,
+      }))
+      : [];
 
     setProgress(100);
 

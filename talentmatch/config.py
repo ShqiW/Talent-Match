@@ -15,3 +15,5 @@ class Config:
     # API configuration
     MAX_CANDIDATES = 10
     MIN_SIMILARITY_THRESHOLD = 0.1
+    # Invitation code for access control (empty disables the check)
+    INVITATION_CODE = env.str('INVITATION_CODE', '')
