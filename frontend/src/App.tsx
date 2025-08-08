@@ -2,14 +2,15 @@ import { useState } from 'react'
 import './App.css'
 import type { Candidate } from './shared/types/index'
 import { useResponsiveLayout } from './hooks/useResponsiveLayout'
-import { simulateProcessing } from './utils/processingUtils'
+import { processCandidatesWithAPI } from './utils/processingUtils'
 import { validatePdfFiles } from './utils/fileValidation'
 import {
   Header,
   JobDescription,
   ResumeUpload,
   AnalysisResults,
-  ResumePreview
+  ResumePreview,
+  ApiTest
 } from './components'
 
 function App() {
@@ -44,13 +45,30 @@ function App() {
     }
 
     // convert files to candidates
-    const newCandidates: Candidate[] = validationResult.validFiles.map((file, index) => ({
-      id: `candidate-${Date.now()}-${index}`,
-      name: file.name.replace(/\.pdf$/i, ''),
-      resume: file.name // only show file name
-    }))
+    const fileReadPromises = Array.from(validationResult.validFiles).map((file, index) => {
+      return new Promise<Candidate>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          resolve({
+            id: `candidate-${Date.now()}-${index}`,
+            name: file.name.replace(/\.pdf$/i, ''),
+            // resume: reader.result as ArrayBuffer, // binary data as ArrayBuffer
+            // resume: reader.result as string, // Base64 encoded string
+            resume: btoa(String.fromCharCode(...new Uint8Array(reader.result as ArrayBuffer))), // Base64 encoded string
+            info: '', // can be filled with additional info if needed
+          })
+        }
+        reader.onerror = reject
+        // reader.readAsArrayBuffer(file) // reads file as ArrayBuffer
+        reader.readAsArrayBuffer(file) // reads file as Base64 string
+      })
+    })
 
-    setCandidates(prev => [...prev, ...newCandidates])
+    Promise.all(fileReadPromises).then(newCandidates => {
+      setCandidates(prev => [...prev, ...newCandidates])
+    })
+
+    // setCandidates(prev => [...prev, ...newCandidates])
 
     // reset input
     event.target.value = '';
@@ -60,7 +78,9 @@ function App() {
     const newCandidate: Candidate = {
       id: `candidate-${Date.now()}`,
       name: `Candidate ${candidates.length + 1}`,
-      resume: text
+      // convert text to base64 string
+      resume: btoa(unescape(encodeURIComponent(text))), // encode text to Base64
+      info: text
     }
     setCandidates(prev => [...prev, newCandidate])
   }
@@ -76,10 +96,16 @@ function App() {
     }
 
     setIsProcessing(true)
-    const processedResults = await simulateProcessing(candidates, setProgress)
-    setResults(processedResults)
-    setIsProcessing(false)
-    setProgress(0)
+    try {
+      const processedResults = await processCandidatesWithAPI(candidates, jobDescription, setProgress)
+      setResults(processedResults)
+    } catch (error) {
+      console.error('Processing failed:', error)
+      alert(error instanceof Error ? error.message : '处理失败，请重试')
+    } finally {
+      setIsProcessing(false)
+      setProgress(0)
+    }
   }
 
   const removeCandidate = (id: string) => {
@@ -102,8 +128,39 @@ function App() {
       <div className="container">
         <Header />
 
+        {/* API Test Component */}
+        <ApiTest />
+
         {/* 2x2 Grid Layout */}
-        <div className="grid-layout">
+        <div display='block'>
+          {/* Collapse JobDescription and ResumeUpload when a candidate is selected */}
+          {selectedCandidate && (
+            <button
+              style={{ marginBottom: '1rem' }}
+              onClick={() => setSelectedCandidate(null)}
+            >
+              Show Job Description & Resume Upload
+            </button>
+          )}
+          <div style={{ display: selectedCandidate ? 'none' : 'flex' }}>
+            <JobDescription
+              jobDescription={jobDescription}
+              onJobDescriptionChange={setJobDescription}
+            />
+
+            <ResumeUpload
+              candidates={candidates}
+              onFileUpload={handleFileUpload}
+              onTextInput={handleTextInput}
+              onRemoveCandidate={removeCandidate}
+              onAnalyze={handleAnalyze}
+              onClearAll={clearAll}
+              isProcessing={isProcessing}
+              jobDescription={jobDescription}
+            />
+          </div>
+
+          {/*           
           <JobDescription
             jobDescription={jobDescription}
             onJobDescriptionChange={setJobDescription}
@@ -118,18 +175,22 @@ function App() {
             onClearAll={clearAll}
             isProcessing={isProcessing}
             jobDescription={jobDescription}
-          />
+          /> */}
 
-          <AnalysisResults
-            results={results}
-            isProcessing={isProcessing}
-            progress={progress}
-            candidates={candidates}
-            selectedCandidate={selectedCandidate}
-            onCandidateClick={handleCandidateClick}
-          />
+          {/* Analysis Results and Resume Preview */}
+          <div style={{ display: results ? 'flex' : 'none' }}>
+            <AnalysisResults
+              results={results}
+              isProcessing={isProcessing}
+              progress={progress}
+              candidates={candidates}
+              selectedCandidate={selectedCandidate}
+              onCandidateClick={handleCandidateClick}
+            />
 
-          <ResumePreview selectedCandidate={selectedCandidate} />
+            <ResumePreview selectedCandidate={selectedCandidate} />
+          </div>
+
         </div>
       </div>
     </div>

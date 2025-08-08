@@ -1,5 +1,59 @@
 import type { Candidate } from '../shared/types/index';
+import { apiService } from '../lib/api';
 
+export const processCandidatesWithAPI = async (
+  candidates: Candidate[],
+  jobDescription: string,
+  setProgress: (progress: number) => void
+): Promise<Candidate[]> => {
+  setProgress(0);
+
+  try {
+    // 检查API连接
+    const healthCheck = await apiService.healthCheck();
+    if (healthCheck.error) {
+      console.error('API health check failed:', healthCheck.error);
+      throw new Error('无法连接到后端服务，请确保后端服务器正在运行');
+    }
+
+    setProgress(20);
+
+    // 调用推荐API
+    const response = await apiService.getRecommendations(jobDescription, candidates);
+
+    if (response.error) {
+      console.error('API request failed:', response.error);
+      throw new Error(`API请求失败: ${response.error}`);
+    }
+
+    if (!response.data) {
+      throw new Error('API返回了空数据');
+    }
+
+    setProgress(80);
+
+    // 转换API响应为前端格式
+    const processedCandidates: Candidate[] = response.data.top_candidates.map((candidate, index) => ({
+      id: candidate.id,
+      name: candidate.name,
+      // resume: candidates.find(c => c.id === candidate.id)?.resume || '',
+      resume: candidate.annotation,
+      similarityScore: candidate.similarity_score,
+      aiSummary: candidate.ai_summary,
+      rank: candidate.rank
+    }));
+
+    setProgress(100);
+
+    return processedCandidates;
+
+  } catch (error) {
+    console.error('Processing error:', error);
+    throw error;
+  }
+};
+
+// 保留原有的模拟函数作为备用
 export const simulateProcessing = async (
   candidates: Candidate[],
   setProgress: (progress: number) => void

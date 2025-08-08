@@ -27,7 +27,17 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ selectedCandidate }) => {
               </div>
             </div>
             <div className="preview-text">
-              <pre>{selectedCandidate.resume}</pre>
+              {selectedCandidate.resume ? (
+                <embed
+                  title="Resume PDF Preview"
+                  src={`data:application/pdf;base64,${selectedCandidate.resume}`}
+                  width="100%"
+                  height="600px"
+                  style={{ border: 'none' }}
+                />
+              ) : (
+                <p>No resume available.</p>
+              )}
             </div>
           </div>
         ) : (
