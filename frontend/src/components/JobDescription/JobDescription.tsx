@@ -7,7 +7,7 @@ interface JobDescriptionProps {
 
 const JobDescription: React.FC<JobDescriptionProps> = ({
   jobDescription,
-  onJobDescriptionChange
+  onJobDescriptionChange,
 }) => {
   return (
     <div className="grid-item job-description-section">

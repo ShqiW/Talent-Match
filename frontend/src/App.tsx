@@ -2,19 +2,22 @@ import { useState } from 'react'
 import './App.css'
 import type { Candidate } from './shared/types/index'
 import { useResponsiveLayout } from './hooks/useResponsiveLayout'
-import { simulateProcessing } from './utils/processingUtils'
+import { processCandidatesWithAPI } from './utils/processingUtils'
+import { apiService } from './lib/api'
 import { validatePdfFiles } from './utils/fileValidation'
 import {
   Header,
   JobDescription,
   ResumeUpload,
   AnalysisResults,
-  ResumePreview
+  ResumePreview,
+  InvitationCode,
 } from './components'
 
 function App() {
   const [jobDescription, setJobDescription] = useState('')
   const [candidates, setCandidates] = useState<Candidate[]>([])
+  const [invitationCode, setInvitationCode] = useState('')
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -44,13 +47,30 @@ function App() {
     }
 
     // convert files to candidates
-    const newCandidates: Candidate[] = validationResult.validFiles.map((file, index) => ({
-      id: `candidate-${Date.now()}-${index}`,
-      name: file.name.replace(/\.pdf$/i, ''),
-      resume: file.name // only show file name
-    }))
+    const fileReadPromises = Array.from(validationResult.validFiles).map((file, index) => {
+      return new Promise<Candidate>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          resolve({
+            id: `candidate-${Date.now()}-${index}`,
+            name: file.name.replace(/\.pdf$/i, ''),
+            // resume: reader.result as ArrayBuffer, // binary data as ArrayBuffer
+            // resume: reader.result as string, // Base64 encoded string
+            resume: btoa(String.fromCharCode(...new Uint8Array(reader.result as ArrayBuffer))), // Base64 encoded string
+            info: '', // can be filled with additional info if needed
+          })
+        }
+        reader.onerror = reject
+        // reader.readAsArrayBuffer(file) // reads file as ArrayBuffer
+        reader.readAsArrayBuffer(file) // reads file as Base64 string
+      })
+    })
 
-    setCandidates(prev => [...prev, ...newCandidates])
+    Promise.all(fileReadPromises).then(newCandidates => {
+      setCandidates(prev => [...prev, ...newCandidates])
+    })
+
+    // setCandidates(prev => [...prev, ...newCandidates])
 
     // reset input
     event.target.value = '';
@@ -60,7 +80,9 @@ function App() {
     const newCandidate: Candidate = {
       id: `candidate-${Date.now()}`,
       name: `Candidate ${candidates.length + 1}`,
-      resume: text
+      // convert text to base64 string
+      resume: '', // encode text to Base64
+      info: text
     }
     setCandidates(prev => [...prev, newCandidate])
   }
@@ -74,12 +96,34 @@ function App() {
       alert('Please add at least one candidate resume')
       return
     }
+    if (!invitationCode.trim()) {
+      alert('Please enter invitation code')
+      return
+    }
+
+    // First verify invitation code, return directly if failed, don't enter processing flow
+    const verify = await apiService.verifyInvitation(invitationCode)
+    if (verify.error || !verify.data?.valid) {
+      alert('Invalid invitation code')
+      return
+    }
 
     setIsProcessing(true)
-    const processedResults = await simulateProcessing(candidates, setProgress)
-    setResults(processedResults)
-    setIsProcessing(false)
-    setProgress(0)
+    try {
+      const processedResults = await processCandidatesWithAPI(
+        candidates,
+        jobDescription,
+        setProgress,
+        invitationCode,
+      )
+      setResults(processedResults)
+    } catch (error) {
+      console.error('Processing failed:', error)
+      alert(error instanceof Error ? error.message : 'Processing failed, please try again')
+    } finally {
+      setIsProcessing(false)
+      setProgress(0)
+    }
   }
 
   const removeCandidate = (id: string) => {
@@ -103,33 +147,87 @@ function App() {
         <Header />
 
         {/* 2x2 Grid Layout */}
-        <div className="grid-layout">
-          <JobDescription
-            jobDescription={jobDescription}
-            onJobDescriptionChange={setJobDescription}
-          />
+        <div className="grid-layout-wrapper">
+          {selectedCandidate && (
+            <button
+              style={{ marginBottom: '1rem' }}
+              onClick={() => setSelectedCandidate(null)}
+            >
+              Show Job Description & Resume Upload
+            </button>
+          )}
 
-          <ResumeUpload
-            candidates={candidates}
-            onFileUpload={handleFileUpload}
-            onTextInput={handleTextInput}
-            onRemoveCandidate={removeCandidate}
-            onAnalyze={handleAnalyze}
-            onClearAll={clearAll}
-            isProcessing={isProcessing}
-            jobDescription={jobDescription}
-          />
+          <div
+            className="grid-layout"
+            style={{
+              gridTemplateRows: selectedCandidate ? '0fr 1fr' : 'auto 1fr',
+              gridTemplateAreas: selectedCandidate
+                ? '"empty empty" "results preview"'
+                : '"job-desc upload" "results preview"'
+            }}
+          >
+            {/* Top Row - Invitation Code and Job Description */}
+            <div
+              className="grid-item"
+              style={{
+                gridArea: 'job-desc',
+                display: selectedCandidate ? 'none' : 'flex',
+                gap: '1rem',
+                alignItems: 'stretch'
+              }}
+            >
+              <InvitationCode value={invitationCode} onChange={setInvitationCode} />
+              <JobDescription
+                jobDescription={jobDescription}
+                onJobDescriptionChange={setJobDescription}
+              />
+            </div>
 
-          <AnalysisResults
-            results={results}
-            isProcessing={isProcessing}
-            progress={progress}
-            candidates={candidates}
-            selectedCandidate={selectedCandidate}
-            onCandidateClick={handleCandidateClick}
-          />
+            <div
+              className="grid-item"
+              style={{
+                gridArea: 'upload',
+                display: selectedCandidate ? 'none' : 'flex'
+              }}
+            >
+              <ResumeUpload
+                candidates={candidates}
+                onFileUpload={handleFileUpload}
+                onTextInput={handleTextInput}
+                onRemoveCandidate={removeCandidate}
+                onAnalyze={handleAnalyze}
+                onClearAll={clearAll}
+                isProcessing={isProcessing}
+                jobDescription={jobDescription}
+              />
+            </div>
 
-          <ResumePreview selectedCandidate={selectedCandidate} />
+            {/* Bottom Row - Results and Preview */}
+            <div
+              className="grid-item"
+              style={{
+                gridArea: 'results'
+              }}
+            >
+              <AnalysisResults
+                results={results}
+                isProcessing={isProcessing}
+                progress={progress}
+                candidates={candidates}
+                selectedCandidate={selectedCandidate}
+                onCandidateClick={handleCandidateClick}
+              />
+            </div>
+
+            <div
+              className="grid-item"
+              style={{
+                gridArea: 'preview'
+              }}
+            >
+              <ResumePreview selectedCandidate={selectedCandidate} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

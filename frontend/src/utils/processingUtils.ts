@@ -1,5 +1,72 @@
 import type { Candidate } from '../shared/types/index';
+import { apiService } from '../lib/api';
 
+export const processCandidatesWithAPI = async (
+  candidates: Candidate[],
+  jobDescription: string,
+  setProgress: (progress: number) => void,
+  invitationCode?: string,
+): Promise<Candidate[]> => {
+  setProgress(0);
+
+  try {
+    // First verify invitation code
+    const verify = await apiService.verifyInvitation(invitationCode);
+    if (verify.error) {
+      throw new Error('Invalid invitation code');
+    }
+
+    // Check API connection
+    const healthCheck = await apiService.healthCheck();
+    if (healthCheck.error) {
+      console.error('API health check failed:', healthCheck.error);
+      throw new Error('Unable to connect to backend service, please ensure backend server is running');
+    }
+
+    setProgress(20);
+
+    // Call recommendation API
+    const response = await apiService.getRecommendations(
+      jobDescription,
+      candidates,
+      invitationCode,
+    );
+
+    if (response.error) {
+      console.error('API request failed:', response.error);
+      throw new Error(`API request failed: ${response.error}`);
+    }
+
+    if (!response.data) {
+      throw new Error('API returned empty data');
+    }
+
+    setProgress(80);
+
+    // Convert API response to frontend format (compatible with possible empty returns or old field names from backend)
+    const topCandidates = (response.data as any).top_candidates || [];
+    const processedCandidates: Candidate[] = Array.isArray(topCandidates)
+      ? topCandidates.map((candidate: any) => ({
+        id: candidate.id,
+        name: candidate.name,
+        resume: candidate.resume,
+        info: candidate.resume_text || '',
+        similarityScore: candidate.similarity_score,
+        aiSummary: candidate.summary,
+      }))
+      : [];
+
+    setProgress(100);
+
+    return processedCandidates;
+
+  } catch (error) {
+    console.error('Processing error:', error);
+    throw error;
+  }
+};
+
+// Keep original simulation function as backup
 export const simulateProcessing = async (
   candidates: Candidate[],
   setProgress: (progress: number) => void

@@ -1,0 +1,3 @@
+tm_env/
+node_modules/
+.env

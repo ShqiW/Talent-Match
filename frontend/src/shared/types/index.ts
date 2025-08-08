@@ -1,7 +1,9 @@
 export interface Candidate {
   id: string;
   name: string;
-  resume: string;
+  resume: string; // Base64 encoded string
+  // resume: ArrayBuffer; // binary data as ArrayBuffer
+  info: string;
   similarityScore?: number;
   aiSummary?: string;
 }
