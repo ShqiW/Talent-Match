@@ -10,6 +10,12 @@ export const processCandidatesWithAPI = async (
   setProgress(0);
 
   try {
+    // 先验证邀请码
+    const verify = await apiService.verifyInvitation(invitationCode);
+    if (verify.error) {
+      throw new Error('Invalid invitation code');
+    }
+
     // 检查API连接
     const healthCheck = await apiService.healthCheck();
     if (healthCheck.error) {

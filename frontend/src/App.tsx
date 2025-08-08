@@ -3,6 +3,7 @@ import './App.css'
 import type { Candidate } from './shared/types/index'
 import { useResponsiveLayout } from './hooks/useResponsiveLayout'
 import { processCandidatesWithAPI } from './utils/processingUtils'
+import { apiService } from './lib/api'
 import { validatePdfFiles } from './utils/fileValidation'
 import {
   Header,
@@ -10,6 +11,7 @@ import {
   ResumeUpload,
   AnalysisResults,
   ResumePreview,
+  InvitationCode,
 } from './components'
 
 function App() {
@@ -94,6 +96,17 @@ function App() {
       alert('Please add at least one candidate resume')
       return
     }
+    if (!invitationCode.trim()) {
+      alert('Please enter invitation code')
+      return
+    }
+
+    // 先验证邀请码，失败直接返回，不进入处理流程
+    const verify = await apiService.verifyInvitation(invitationCode)
+    if (verify.error || !verify.data?.valid) {
+      alert('Invalid invitation code')
+      return
+    }
 
     setIsProcessing(true)
     try {
@@ -153,7 +166,7 @@ function App() {
                 : '"job-desc upload" "results preview"'
             }}
           >
-            {/* Top Row - Job Description and Upload */}
+            {/* Top Row - Invitation Code and Job Description */}
             <div
               className="grid-item"
               style={{
@@ -161,11 +174,10 @@ function App() {
                 display: selectedCandidate ? 'none' : 'flex'
               }}
             >
+              <InvitationCode value={invitationCode} onChange={setInvitationCode} />
               <JobDescription
                 jobDescription={jobDescription}
                 onJobDescriptionChange={setJobDescription}
-                invitationCode={invitationCode}
-                onInvitationCodeChange={setInvitationCode}
               />
             </div>
 

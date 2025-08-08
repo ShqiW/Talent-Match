@@ -68,6 +68,21 @@ def create_recommendation_routes(
     #         return jsonify(
     #             {'error': f'Error generating recommendations: {str(e)}'}), 500
 
+    @recommendation_bp.route('/api/verify-invitation', methods=['POST'])
+    def verify_invitation():
+        """验证邀请码"""
+        data = request.get_json() or {}
+        configured_code = app_config.get('INVITATION_CODE', '')
+        if not configured_code:
+            # 未设置邀请码则拒绝，防止绕过
+            return jsonify({'error': 'Invitation code not configured'}), 200
+
+        provided_code = (data.get('invitation_code') or '').strip()
+        if provided_code != configured_code:
+            return jsonify({'error': 'Invalid or missing invitation code'}), 403
+
+        return jsonify({'valid': True}), 200
+
     @recommendation_bp.route('/api/match', methods=['POST'])
     def match_candidates():
         """实时匹配候选人 - 专门用于前端直接传入数据"""
@@ -79,10 +94,9 @@ def create_recommendation_routes(
 
         # 校验邀请代码（如果在配置中启用）
         configured_code = app_config.get('INVITATION_CODE', '')
-        if configured_code:
-            provided_code = (data.get('invitation_code') or '').strip()
-            if provided_code != configured_code:
-                return jsonify({'error': 'Invalid or missing invitation code'}), 403
+        provided_code = (data.get('invitation_code') or '').strip()
+        if not configured_code or provided_code != configured_code:
+            return jsonify({'error': 'Invalid or missing invitation code'}), 403
 
         job_description = data.get('job_description', '').strip()
         candidates_data = data.get('candidates')

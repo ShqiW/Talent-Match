@@ -91,6 +91,14 @@ class ApiService {
     }
   }
 
+  async verifyInvitation(invitationCode?: string): Promise<ApiResponse<{ valid: boolean }>> {
+    const payload = invitationCode ? { invitation_code: invitationCode } : {};
+    return this.request<{ valid: boolean }>(`/api/verify-invitation`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
   async getRecommendations(
     jobDescription: string,
     candidates: Candidate[],
