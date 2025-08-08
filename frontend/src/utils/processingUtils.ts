@@ -10,22 +10,22 @@ export const processCandidatesWithAPI = async (
   setProgress(0);
 
   try {
-    // 先验证邀请码
+    // First verify invitation code
     const verify = await apiService.verifyInvitation(invitationCode);
     if (verify.error) {
       throw new Error('Invalid invitation code');
     }
 
-    // 检查API连接
+    // Check API connection
     const healthCheck = await apiService.healthCheck();
     if (healthCheck.error) {
       console.error('API health check failed:', healthCheck.error);
-      throw new Error('无法连接到后端服务，请确保后端服务器正在运行');
+      throw new Error('Unable to connect to backend service, please ensure backend server is running');
     }
 
     setProgress(20);
 
-    // 调用推荐API
+    // Call recommendation API
     const response = await apiService.getRecommendations(
       jobDescription,
       candidates,
@@ -34,16 +34,16 @@ export const processCandidatesWithAPI = async (
 
     if (response.error) {
       console.error('API request failed:', response.error);
-      throw new Error(`API请求失败: ${response.error}`);
+      throw new Error(`API request failed: ${response.error}`);
     }
 
     if (!response.data) {
-      throw new Error('API返回了空数据');
+      throw new Error('API returned empty data');
     }
 
     setProgress(80);
 
-    // 转换API响应为前端格式（兼容后端可能返回空或老字段名）
+    // Convert API response to frontend format (compatible with possible empty returns or old field names from backend)
     const topCandidates = (response.data as any).top_candidates || [];
     const processedCandidates: Candidate[] = Array.isArray(topCandidates)
       ? topCandidates.map((candidate: any) => ({
@@ -66,7 +66,7 @@ export const processCandidatesWithAPI = async (
   }
 };
 
-// 保留原有的模拟函数作为备用
+// Keep original simulation function as backup
 export const simulateProcessing = async (
   candidates: Candidate[],
   setProgress: (progress: number) => void

@@ -1,16 +1,16 @@
 """
-健康检查和基础路由
+Health check and basic routes
 """
 from flask import Blueprint, jsonify
 
 
 def create_health_routes():
-    """创建健康检查路由"""
+    """Create health check routes"""
     health_bp = Blueprint('health', __name__)
     
     @health_bp.route('/')
     def index():
-        """健康检查端点"""
+        """Health check endpoint"""
         return jsonify({
             'message': 'Candidate Recommendation Engine API',
             'status': 'running',
@@ -19,7 +19,7 @@ def create_health_routes():
     
     @health_bp.route('/api/health')
     def health_check():
-        """健康检查端点"""
+        """Health check endpoint"""
         return jsonify({
             'status': 'healthy',
             'message': 'API is running successfully'

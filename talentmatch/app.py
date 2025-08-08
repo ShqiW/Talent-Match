@@ -13,25 +13,25 @@ from talentmatch.etc.recommendengine import RecommendationEngine
 
 
 def create_app():
-    """创建Flask应用"""
+    """Create Flask application"""
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # 启用CORS
+    # Enable CORS
     CORS(app)
 
-    # 创建上传文件夹
+    # Create upload folder
     create_upload_folder(app.config['UPLOAD_FOLDER'])
 
-    # 初始化处理器
+    # Initialize processors
     embedding_processor = EmbeddingProcessor(EMBEDDING_MODEL)
     recommendation_engine = RecommendationEngine(embedding_processor)
 
-    # 初始化服务
+    # Initialize services
     candidate_service = CandidateService(embedding_processor)
     recommendation_service = RecommendationService(recommendation_engine, )
 
-    # 注册路由
+    # Register routes
     app.register_blueprint(create_health_routes())
     app.register_blueprint(
         create_candidate_routes(
@@ -45,15 +45,15 @@ def create_app():
             app.config,
         ))
 
-    # 错误处理
+    # Error handling
     @app.errorhandler(404)
     def not_found(error):
-        """404错误处理"""
+        """404 error handling"""
         return jsonify({'error': 'Endpoint not found'}), 404
 
     @app.errorhandler(500)
     def internal_error(error):
-        """500错误处理"""
+        """500 error handling"""
         return jsonify({'error': 'Internal server error'}), 500
 
     return app

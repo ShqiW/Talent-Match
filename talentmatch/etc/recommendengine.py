@@ -22,11 +22,11 @@ class RecommendationEngine:
         top_k: int = 10,
         min_similarity: float = 0.1,
     ) -> List[Dict]:
-        """找到最匹配的候选人"""
+        """Find the most matching candidates"""
         if not candidates:
             return []
 
-        # 生成职位描述的嵌入
+        # Generate job description embedding
         job_embedding = self.embedding_processor.generate_embedding(
             job_description)
 
@@ -39,17 +39,17 @@ class RecommendationEngine:
         optimal_similarity = self.embedding_processor.calculate_similarity(
             job_embedding, ideal_candidate_embedding)
 
-        # 计算每个候选人的相似度
+        # Calculate similarity for each candidate
         candidate_scores = []
 
         for candidate in candidates:
             if 'embedding' not in candidate:
                 continue
 
-            # 将嵌入转换回numpy数组
+            # Convert embedding back to numpy array
             candidate_embedding = np.array(candidate['embedding'])
 
-            # 计算相似度
+            # Calculate similarity
             similarity = self.embedding_processor.calculate_similarity(
                 job_embedding,
                 candidate_embedding,
@@ -75,13 +75,13 @@ class RecommendationEngine:
                         'resume': candidate.get('resume', ''),
                     }, )
 
-        # 按相似度排序
+        # Sort by similarity
         candidate_scores.sort(
             key=lambda x: x['similarity_score'],
             reverse=True,
         )
 
-        # 返回前top_k个候选人
+        # Return top k candidates
         return candidate_scores[:top_k]
 
     def _query_openai_for_latex(
@@ -90,14 +90,14 @@ class RecommendationEngine:
         candidate: Dict,
     ) -> str:
         """
-        Query OpenAI to generate LaTeX annotated resume
+        Query DeepSeek to generate LaTeX annotated resume
         """
         try:
             # client = openai.OpenAI(api_key=OPENAI_API_KEY)
             client = openai.OpenAI(api_key=DEEPSEEK_API_KEY,
                                    base_url="https://api.deepseek.com")
 
-            # 更严格的提示词，强调输出格式
+            # More strict prompts, emphasize output format
             prompt = f"""
             Create a professional LaTeX resume document. IMPORTANT: Your response must contain ONLY the LaTeX code, no explanations or markdown formatting.
 
@@ -133,14 +133,14 @@ class RecommendationEngine:
 
             latex_response = response.choices[0].message.content
 
-            # 清理返回的LaTeX代码
+            # Clean returned LaTeX code
             cleaned_latex = clean_latex_response(latex_response)
 
             return cleaned_latex
 
         except Exception as e:
             print(f"Error querying OpenAI: {e}")
-            # 使用占位符实现作为后备
+            # Use placeholder implementation as fallback
             return self._generate_placeholder_latex(candidate)
 
     def _query_openai_for_summary(
@@ -149,13 +149,13 @@ class RecommendationEngine:
         candidate: str,
     ) -> str:
         """
-        Query OpenAI to generate LaTeX annotated resume
+        Query DeepSeek to generate LaTeX annotated resume
         """
         # client = openai.OpenAI(api_key=OPENAI_API_KEY)
         client = openai.OpenAI(api_key=DEEPSEEK_API_KEY,
                                base_url="https://api.deepseek.com")
 
-        # 更严格的提示词，强调输出格式
+        # More strict prompts, emphasize output format
         prompt = f"""
         Given the following job description and candidate resume, return a summary of the candidate's qualifications and whether they match the job requirements in plain text  in plain text in plain text in plain text in plain text.
 
@@ -193,7 +193,7 @@ class RecommendationEngine:
         client = openai.OpenAI(api_key=DEEPSEEK_API_KEY,
                                base_url="https://api.deepseek.com")
 
-        # 更严格的提示词，强调输出格式
+        # More strict prompts, emphasize output format
         prompt = f"""
         In a pipeline where multiple candidates are being evaluated for a job position, it is useful to imagine the ideal candidate who perfectly fits the job requirements as the upper bound. Given the following job description, return a resume style description of the ideal candidate in plain text.
 
@@ -229,7 +229,7 @@ class RecommendationEngine:
             Base64 encoded PDF of the annotated resume
         """
         try:
-            # Step 1: 在查询OpenAI前先处理简历文本
+            # Step 1: Process resume text before querying OpenAI
             processed_candidate = candidate.copy()
             if 'resume' in processed_candidate:
                 processed_candidate['resume'] = escape_latex_chars(
@@ -274,7 +274,7 @@ class RecommendationEngine:
             client = openai.OpenAI(api_key=DEEPSEEK_API_KEY,
                                    base_url="https://api.deepseek.com")
 
-            # 更严格的提示词，强调输出格式
+            # More strict prompts, emphasize output format
             prompt = f"""
             Create a professional LaTeX resume document. IMPORTANT: Your response must contain ONLY the LaTeX code, no explanations or markdown formatting.
 
@@ -310,24 +310,24 @@ class RecommendationEngine:
 
             latex_response = response.choices[0].message.content
 
-            # 清理返回的LaTeX代码
+            # Clean returned LaTeX code
             cleaned_latex = clean_latex_response(latex_response)
 
             return cleaned_latex
 
         except Exception as e:
             print(f"Error querying OpenAI: {e}")
-            # 使用占位符实现作为后备
+            # Use placeholder implementation as fallback
             return self._generate_placeholder_latex(candidate)
 
     def _generate_placeholder_latex(self, candidate: Dict) -> str:
         """Generate a simple LaTeX document as placeholder"""
-        # 确保候选人简历文本被转义
+        # Ensure candidate resume text is escaped
         resume_text = escape_latex_chars(
             candidate.get('resume', 'No resume content available'))
         candidate_name = escape_latex_chars(candidate.get('name', 'Candidate'))
 
-        # 改进的占位符模板，更像真实简历
+        # Improved placeholder template, more like real resume
         latex_content = f"""\\documentclass{{article}}
 \\usepackage[utf8]{{inputenc}}
 \\usepackage{{xcolor}}
@@ -374,7 +374,7 @@ class RecommendationEngine:
         Compile LaTeX content to PDF using pdflatex
         """
         try:
-            # 预处理LaTeX内容，移除可能的问题
+            # Preprocess LaTeX content, remove possible issues
             latex_content = self._preprocess_latex_content(latex_content)
 
             # Create temporary directory for LaTeX compilation
@@ -386,8 +386,8 @@ class RecommendationEngine:
             with open(tex_file, 'w', encoding='utf-8') as f:
                 f.write(latex_content)
 
-            # 多次编译以处理引用
-            for attempt in range(2):  # 通常2次编译足够
+            # Multiple compilations to handle references
+            for attempt in range(2):  # Usually 2 compilations are enough
                 result = subprocess.run([
                     'pdflatex', '-output-directory',
                     str(temp_dir), '-interaction=nonstopmode',
@@ -398,7 +398,7 @@ class RecommendationEngine:
                                         cwd=temp_dir,
                                         timeout=30)
 
-                # 如果第一次编译成功，进行第二次编译处理引用
+                # If first compilation succeeds, perform second compilation to handle references
                 if attempt == 0 and result.returncode == 0:
                     continue
                 elif attempt == 1 or result.returncode == 0:
@@ -416,7 +416,7 @@ class RecommendationEngine:
 
                 return final_pdf_path
             else:
-                # 详细的错误信息
+                # Detailed error information
                 print(f"LaTeX compilation failed for candidate {candidate_id}")
                 print(f"Return code: {result.returncode}")
                 if result.stderr:
@@ -424,7 +424,7 @@ class RecommendationEngine:
                 if result.stdout:
                     print(f"STDOUT (last 1000 chars): {result.stdout[-1000:]}")
 
-                # 保存调试文件
+                # Save debug files
                 debug_tex_path = Path(
                     "uploads") / f"debug_resume_{candidate_id}.tex"
                 debug_tex_path.parent.mkdir(exist_ok=True)
@@ -432,7 +432,7 @@ class RecommendationEngine:
                     f.write(latex_content)
                 print(f"Debug .tex file saved to: {debug_tex_path}")
 
-                # 如果OpenAI生成的LaTeX失败，尝试使用占位符
+                # If OpenAI-generated LaTeX fails, try using placeholder
                 if not hasattr(self, '_tried_placeholder'):
                     print(
                         f"Trying placeholder LaTeX for candidate {candidate_id}"
@@ -440,11 +440,11 @@ class RecommendationEngine:
                     self._tried_placeholder = True
                     placeholder_latex = self._generate_placeholder_latex(
                         candidate)
-                    delattr(self, '_tried_placeholder')  # 清除标记
+                    delattr(self, '_tried_placeholder')  # Clear flag
                     return self._compile_latex_to_pdf(placeholder_latex,
                                                       candidate_id)
                 else:
-                    delattr(self, '_tried_placeholder')  # 清除标记
+                    delattr(self, '_tried_placeholder')  # Clear flag
                     return None
 
         except subprocess.TimeoutExpired:
@@ -456,32 +456,32 @@ class RecommendationEngine:
             print(f"Error compiling LaTeX: {e}")
             return None
         finally:
-            # 清理临时目录
+            # Clean temporary directory
             if 'temp_dir' in locals():
                 import shutil
                 shutil.rmtree(temp_dir, ignore_errors=True)
 
     def _preprocess_latex_content(self, latex_content: str) -> str:
-        """预处理LaTeX内容，移除可能导致编译失败的元素"""
+        """Preprocess LaTeX content, remove elements that may cause compilation failures"""
 
-        # 移除可能的外部文件引用
+        # Remove possible external file references
         latex_content = re.sub(r'\\input\{[^}]+\}', '', latex_content)
         latex_content = re.sub(r'\\include\{[^}]+\}', '', latex_content)
 
-        # 确保必要的包被包含
+        # Ensure necessary packages are included
         required_packages = [
             r'\usepackage[utf8]{inputenc}', r'\usepackage{xcolor}',
             r'\usepackage{geometry}', r'\usepackage{enumitem}'
         ]
 
-        # 检查是否包含必要的包，如果没有则添加
+        # Check if necessary packages are included, if not add them
         for package in required_packages:
             if package not in latex_content:
-                # 在\documentclass之后添加包
+                # Add package after \documentclass
                 latex_content = re.sub(r'(\\documentclass\{[^}]+\})',
                                        f'\\1\n{package}', latex_content)
 
-        # 确保有geometry设置
+        # Ensure geometry is set
         if r'\geometry{' not in latex_content and r'\usepackage{geometry}' in latex_content:
             latex_content = re.sub(r'(\\usepackage\{geometry\})',
                                    r'\1\n\\geometry{margin=1in}',

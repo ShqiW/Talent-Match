@@ -1,5 +1,5 @@
 """
-候选人业务逻辑服务
+Candidate business logic service
 """
 from typing import List, Dict, Any
 from talentmatch.models.candidate import Candidate, CandidateStorage
@@ -8,7 +8,7 @@ from talentmatch.utils import process_candidates
 
 
 class CandidateService:
-    """候选人服务类"""
+    """Candidate service class"""
 
     def __init__(self, embedding_processor: EmbeddingProcessor):
         self.embedding_processor = embedding_processor
@@ -18,15 +18,15 @@ class CandidateService:
         self,
         candidates_data: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """从数据添加候选人"""
+        """Add candidates from data"""
         if not candidates_data:
             raise ValueError("No candidates provided")
 
-        # 处理候选人数据
+        # Process candidate data
         processed_candidates = process_candidates(self.embedding_processor,
                                                   candidates_data)
 
-        # 添加到存储
+        # Add to storage
         added_count = self.storage.add_candidates(processed_candidates)
 
         return {
@@ -37,18 +37,18 @@ class CandidateService:
 
     def add_candidates_from_files(
             self, files_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """从文件数据添加候选人"""
+        """Add candidates from file data"""
         if not files_data:
             raise ValueError("No files provided")
 
-        # 处理候选人数据
+        # Process candidate data
         processed_candidates = process_candidates(self.embedding_processor,
                                                   files_data)
 
         if not processed_candidates:
             raise ValueError("No valid candidates found in uploaded files")
 
-        # 添加到存储
+        # Add to storage
         added_count = self.storage.add_candidates(processed_candidates)
 
         return {
@@ -58,7 +58,7 @@ class CandidateService:
         }
 
     def get_all_candidates(self) -> Dict[str, Any]:
-        """获取所有候选人"""
+        """Get all candidates"""
         candidates_info = self.storage.get_info_list()
 
         return {
@@ -67,7 +67,7 @@ class CandidateService:
         }
 
     def delete_candidate(self, candidate_id: str) -> Dict[str, Any]:
-        """删除特定候选人"""
+        """Delete specific candidate"""
         deleted_candidate = self.storage.delete_by_id(candidate_id)
 
         if not deleted_candidate:
@@ -83,7 +83,7 @@ class CandidateService:
         }
 
     def clear_all_candidates(self) -> Dict[str, Any]:
-        """清空所有候选人"""
+        """Clear all candidates"""
         count = self.storage.clear_all()
 
         return {
@@ -94,7 +94,7 @@ class CandidateService:
     def get_candidates_for_recommendation(self,
                                           use_stored: bool = True
                                           ) -> List[Candidate]:
-        """获取用于推荐的候选人列表"""
+        """Get candidate list for recommendations"""
         if use_stored:
             candidates = self.storage.get_all()
             if not candidates:

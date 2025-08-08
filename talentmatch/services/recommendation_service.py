@@ -1,5 +1,5 @@
 """
-推荐业务逻辑服务
+Recommendation business logic service
 """
 from typing import List, Dict, Any
 from talentmatch.etc.recommendengine import RecommendationEngine
@@ -7,7 +7,7 @@ from talentmatch.utils import process_candidates
 
 
 class RecommendationService:
-    """推荐服务类"""
+    """Recommendation service class"""
 
     def __init__(
         self,
@@ -22,30 +22,30 @@ class RecommendationService:
     #     top_k: int = 10,
     #     min_similarity: float = 0.5,
     # ) -> Dict[str, Any]:
-    #     """获取候选人推荐"""
+    #     """Get candidate recommendations"""
     #     if not job_description.strip():
     #         raise ValueError("Job description is required")
 
-    #     # 确定使用哪些候选人数据
+    #     # Determine which candidate data to use
     #     if candidates_data:
-    #         # 使用前端传入的候选人数据
-    #         print(f"使用前端传入的 {len(candidates_data)} 个候选人数据")
+    #         # Use candidate data passed from frontend
+    #         print(f"Using {len(candidates_data)} candidate data passed from frontend")
     #         candidates_to_process = candidates_data
     #         use_stored_candidates = False
     #     else:
-    #         # 使用已存储的候选人数据
-    #         print("使用已存储的候选人数据")
+    #         # Use stored candidate data
+    #         print("Using stored candidate data")
     #         candidates_to_process = []
     #         use_stored_candidates = True
 
-    #     # 处理候选人数据（如果需要）
+    #     # Process candidate data (if needed)
     #     if not use_stored_candidates:
     #         processed_candidates = self.candidate_processor.process_candidates(
     #             candidates_to_process)
     #     else:
     #         processed_candidates = candidates_to_process
 
-    #     # 获取推荐
+    #     # Get recommendations
     #     recommendations = self.recommendation_engine.find_top_candidates(
     #         job_description=job_description,
     #         candidates=processed_candidates,
@@ -68,7 +68,7 @@ class RecommendationService:
         top_k: int = 10,
         min_similarity: float = 0.5,
     ) -> Dict[str, Any]:
-        """实时匹配候选人"""
+        """Real-time candidate matching"""
         if not job_description.strip():
             raise ValueError("Job description is required")
 
@@ -79,10 +79,10 @@ class RecommendationService:
         # input()
 
         print(
-            f"实时匹配: 职位描述长度={len(job_description)}, 候选人数量={len(candidates_data)}"
+            f"Real-time matching: job description length={len(job_description)}, candidate count={len(candidates_data)}"
         )
 
-        # 处理候选人数据
+        # Process candidate data
         processed_candidates = process_candidates(
             self.recommendation_engine.embedding_processor,
             candidates_data,
@@ -97,7 +97,7 @@ class RecommendationService:
                 'data_source': 'frontend'
             }
 
-        # 获取推荐
+        # Get recommendations
         recommendations = self.recommendation_engine.find_top_candidates(
             job_description=job_description,
             candidates=processed_candidates,

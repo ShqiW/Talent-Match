@@ -1,5 +1,5 @@
 """
-推荐相关路由
+Recommendation related routes
 """
 from flask import Blueprint, request, jsonify
 from talentmatch.services.recommendation_service import RecommendationService
@@ -11,12 +11,12 @@ def create_recommendation_routes(
     candidate_service: CandidateService,
     app_config,
 ):
-    """创建推荐路由"""
+    """Create recommendation routes"""
     recommendation_bp = Blueprint('recommendations', __name__)
 
     # @recommendation_bp.route('/api/recommendations', methods=['POST'])
     # def get_recommendations():
-    #     """获取候选人推荐"""
+    #     """Get candidate recommendations"""
     #     try:
     #         data = request.get_json()
 
@@ -28,30 +28,30 @@ def create_recommendation_routes(
     #         if not job_description:
     #             return jsonify({'error': 'Job description is required'}), 400
 
-    #         # 获取候选人数据 - 支持两种方式：
-    #         # 1. 从前端直接传入候选人数据
-    #         # 2. 使用已存储的候选人数据
+    #         # Get candidate data - supports two methods:
+    #         # 1. Directly passed candidate data from frontend
+    #         # 2. Use stored candidate data
     #         candidates_data = data.get('candidates', [])
 
-    #         # 获取参数
+    #         # Get parameters
     #         top_k = data.get('top_k', app_config['MAX_CANDIDATES'])
     #         min_similarity = data.get(
     #             'min_similarity',
     #             app_config['MIN_SIMILARITY_THRESHOLD'],
     #         )
 
-    #         # 确定使用哪些候选人数据
+    #         # Determine which candidate data to use
     #         if candidates_data:
-    #             # 使用前端传入的候选人数据
+    #             # Use candidate data passed from frontend
     #             candidates_to_process = candidates_data
     #             use_stored_candidates = False
     #         else:
-    #             # 使用已存储的候选人数据
+    #             # Use stored candidate data
     #             candidates_to_process = candidate_service.get_candidates_for_recommendation(
     #                 use_stored=True)
     #             use_stored_candidates = True
 
-    #         # 使用服务层处理
+    #         # Use service layer for processing
     #         result = recommendation_service.get_recommendations(
     #             job_description=job_description,
     #             candidates_data=candidates_to_process
@@ -70,11 +70,11 @@ def create_recommendation_routes(
 
     @recommendation_bp.route('/api/verify-invitation', methods=['POST'])
     def verify_invitation():
-        """验证邀请码"""
+        """Verify invitation code"""
         data = request.get_json() or {}
         configured_code = app_config.get('INVITATION_CODE', '')
         if not configured_code:
-            # 未设置邀请码则拒绝，防止绕过
+            # Reject if invitation code not set, prevent bypass
             return jsonify({'error': 'Invitation code not configured'}), 200
 
         provided_code = (data.get('invitation_code') or '').strip()
@@ -85,14 +85,14 @@ def create_recommendation_routes(
 
     @recommendation_bp.route('/api/match', methods=['POST'])
     def match_candidates():
-        """实时匹配候选人 - 专门用于前端直接传入数据"""
+        """Real-time candidate matching - specifically for frontend direct data input"""
         # try:
         data = request.get_json()
 
         if not data:
             return jsonify({'error': 'No data provided'}), 400
 
-        # 校验邀请代码（如果在配置中启用）
+        # Validate invitation code (if enabled in configuration)
         configured_code = app_config.get('INVITATION_CODE', '')
         provided_code = (data.get('invitation_code') or '').strip()
         if not configured_code or provided_code != configured_code:
@@ -107,14 +107,14 @@ def create_recommendation_routes(
         if not candidates_data:
             return jsonify({'error': 'Candidates data is required'}), 400
 
-        # 获取参数
+        # Get parameters
         top_k = data.get('top_k', app_config['MAX_CANDIDATES'])
         min_similarity = data.get(
             'min_similarity',
             app_config['MIN_SIMILARITY_THRESHOLD'],
         )
 
-        # 使用服务层处理
+        # Use service layer for processing
         result = recommendation_service.match_candidates_realtime(
             job_description=job_description,
             candidates_data=candidates_data,

@@ -1,12 +1,12 @@
 """
-候选人数据模型
+Candidate data model
 """
 from typing import List, Dict, Any
 import uuid
 
 
 class Candidate:
-    """候选人模型类"""
+    """Candidate model class"""
     
     def __init__(self, name: str, resume: str, candidate_id: str = None):
         self.id = candidate_id or str(uuid.uuid4())
@@ -16,7 +16,7 @@ class Candidate:
         self.embedding = None
     
     def to_dict(self) -> Dict[str, Any]:
-        """转换为字典格式"""
+        """Convert to dictionary format"""
         return {
             'id': self.id,
             'name': self.name,
@@ -27,7 +27,7 @@ class Candidate:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Candidate':
-        """从字典创建候选人对象"""
+        """Create candidate object from dictionary"""
         candidate = cls(
             name=data['name'],
             resume=data['resume'],
@@ -39,46 +39,46 @@ class Candidate:
 
 
 class CandidateStorage:
-    """候选人存储管理"""
+    """Candidate storage management"""
     
     def __init__(self):
         self._candidates: List[Candidate] = []
     
     def add_candidates(self, candidates: List[Candidate]) -> int:
-        """添加候选人"""
+        """Add candidates"""
         self._candidates.extend(candidates)
         return len(candidates)
     
     def get_all(self) -> List[Candidate]:
-        """获取所有候选人"""
+        """Get all candidates"""
         return self._candidates.copy()
     
     def get_by_id(self, candidate_id: str) -> Candidate:
-        """根据ID获取候选人"""
+        """Get candidate by ID"""
         for candidate in self._candidates:
             if candidate.id == candidate_id:
                 return candidate
         return None
     
     def delete_by_id(self, candidate_id: str) -> Candidate:
-        """根据ID删除候选人"""
+        """Delete candidate by ID"""
         for i, candidate in enumerate(self._candidates):
             if candidate.id == candidate_id:
                 return self._candidates.pop(i)
         return None
     
     def clear_all(self) -> int:
-        """清空所有候选人"""
+        """Clear all candidates"""
         count = len(self._candidates)
         self._candidates.clear()
         return count
     
     def count(self) -> int:
-        """获取候选人数量"""
+        """Get candidate count"""
         return len(self._candidates)
     
     def get_info_list(self) -> List[Dict[str, Any]]:
-        """获取候选人信息列表（用于API响应）"""
+        """Get candidate information list (for API response)"""
         candidates_info = []
         for candidate in self._candidates:
             candidates_info.append({

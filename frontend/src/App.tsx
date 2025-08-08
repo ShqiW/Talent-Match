@@ -101,7 +101,7 @@ function App() {
       return
     }
 
-    // 先验证邀请码，失败直接返回，不进入处理流程
+    // First verify invitation code, return directly if failed, don't enter processing flow
     const verify = await apiService.verifyInvitation(invitationCode)
     if (verify.error || !verify.data?.valid) {
       alert('Invalid invitation code')
@@ -119,7 +119,7 @@ function App() {
       setResults(processedResults)
     } catch (error) {
       console.error('Processing failed:', error)
-      alert(error instanceof Error ? error.message : '处理失败，请重试')
+      alert(error instanceof Error ? error.message : 'Processing failed, please try again')
     } finally {
       setIsProcessing(false)
       setProgress(0)

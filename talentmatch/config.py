@@ -3,7 +3,7 @@ import environs
 from pathlib import Path
 
 env = environs.Env()
-env.read_env(Path.cwd() / ".env")  # 读取 .env 文件中的环境变量
+env.read_env(Path.cwd() / ".env")  # Read environment variables from .env file
 
 
 class Config:

@@ -1,24 +1,18 @@
 import type { Candidate } from '../shared/types/index';
 
-// 支持环境变量配置API URL
+// Support environment variable configuration for API URL
 const getApiBaseUrl = () => {
-  // 检查环境变量
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
 
-  // 检查当前主机名，如果是OSC环境，使用不同的端口
   const hostname = window.location.hostname;
   const port = window.location.port;
 
-  // 如果是localhost或127.0.0.1，使用默认端口5000
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'http://localhost:5000';
   }
 
-  // 在OSC环境中，前端通常在5173端口，后端在5000端口
-  // 但需要通过端口转发访问后端
-  // 尝试使用当前域名和端口5000
   return `${window.location.protocol}//${hostname}:5000`;
 };
 
@@ -112,7 +106,7 @@ class ApiService {
         id: candidate.id,
         name: candidate.name,
         info: candidate.info,
-        resume: candidate.resume, // 传递二进制数据
+        resume: candidate.resume, // Pass binary data
       })),
       ...options
     };
