@@ -6,6 +6,7 @@ from pypdf import PdfReader
 import base64
 from typing import List, Dict
 import uuid
+from talentmatch import STATIC_DIR
 
 
 def escape_latex_chars(text: str) -> str:
@@ -295,10 +296,19 @@ def process_candidates(
         name = candidate.get('name', f'Candidate_{candidate_id[:8]}')
         info = candidate.get('info', '')
         resume: str = candidate.get('resume', '')
+        # Save resume PDF to STATIC_DIR/pdf/randomname.pdf if resume exists
         if (len(resume) > 0):
+            pdf_dir = STATIC_DIR / 'pdf'
+            create_upload_folder(pdf_dir)
+            pdf_filename = f"{uuid.uuid4().hex}.pdf"
+            pdf_path = pdf_dir / pdf_filename
+            with open(pdf_path, "wb") as f:
+                f.write(base64.b64decode(resume))
+            resume_name = pdf_path.name
             resume_text = extract_text_from_pdf_base64(resume).strip()
         else:
             resume_text = ""
+            resume_name = ""
 
         merge_text = info + "\n" + resume_text
 
@@ -309,9 +319,11 @@ def process_candidates(
             'id': candidate_id,
             'name': name,
             'resume_text': merge_text,
-            'embedding': embedding.tolist(),  # Convert to list for JSON serialization
+            'embedding':
+            embedding.tolist(),  # Convert to list for JSON serialization
             'summary': _generate_summary(name, resume_text),
             'resume': resume,
+            'resume_name': resume_name
         }
 
         processed_candidates.append(processed_candidate)

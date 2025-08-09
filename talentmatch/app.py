@@ -7,14 +7,19 @@ from talentmatch.services.recommendation_service import RecommendationService
 from talentmatch.routes.health_routes import create_health_routes
 from talentmatch.routes.candidate_routes import create_candidate_routes
 from talentmatch.routes.recommendation_routes import create_recommendation_routes
-from talentmatch import EMBEDDING_MODEL
+from talentmatch import EMBEDDING_MODEL, STATIC_DIR
 from talentmatch.etc.embeddingprocessor import EmbeddingProcessor
 from talentmatch.etc.recommendengine import RecommendationEngine
 
 
 def create_app():
     """Create Flask application"""
-    app = Flask(__name__)
+    print(f"Frontend provided through {STATIC_DIR}")
+    app = Flask(
+        __name__,
+        template_folder=STATIC_DIR,
+        static_folder=STATIC_DIR,
+    )
     app.config.from_object(Config)
 
     # Enable CORS
@@ -76,6 +81,5 @@ if __name__ == '__main__':
     print("  DELETE /api/candidates/<id> - Delete specific candidate")
     print("")
     print("💡 First run will download the model (~1.5GB)")
-    print("🌐 Server will start at: http://localhost:5000")
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=7860)

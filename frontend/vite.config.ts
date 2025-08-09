@@ -4,16 +4,20 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [react()],
-
+    base: '/static/',
+    build: {
+        outDir: 'dist',
+        assetsDir: 'assets'
+    },
     server: {
         // watch: null,
 
         proxy: {
             '/api': {
-                target: "http://127.0.0.1:5000",
+                target: "https://huggingface.co/spaces/ShqiW/talentMatch-backend",
                 changeOrigin: true,
                 // 'pathRewrite' is not supported in Vite proxy options; remove it or use a custom middleware if needed.
-            },
+            }
 
         }
     }

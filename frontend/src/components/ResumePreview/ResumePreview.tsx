@@ -1,3 +1,4 @@
+// import { useState, useEffect } from 'react';
 import React from 'react';
 import type { Candidate } from '../../shared/types/index';
 
@@ -5,7 +6,44 @@ interface ResumePreviewProps {
   selectedCandidate: Candidate | null;
 }
 
+// const PDFViewer: React.FC<{ selectedCandidate: Candidate }> = ({ selectedCandidate }) => {
+//   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+//   useEffect(() => {
+//     if (selectedCandidate.resume) {
+//       const binaryString = atob(selectedCandidate.resume);
+//       const bytes = new Uint8Array(binaryString.length);
+//       for (let i = 0; i < binaryString.length; i++) {
+//         bytes[i] = binaryString.charCodeAt(i);
+//       }
+//       const blob = new Blob([bytes], { type: 'application/pdf' });
+//       const url = URL.createObjectURL(blob);
+//       setPdfUrl(url);
+
+//       return () => {
+//         URL.revokeObjectURL(url);
+//       };
+//     } else {
+//       setPdfUrl(null);
+//     }
+//   }, [selectedCandidate.resume]);
+
+//   if (!pdfUrl) {
+//     return <div>Loading PDF...</div>;
+//   }
+
+//   return (
+//     <embed
+//       title="Resume PDF Preview"
+//       src={pdfUrl}
+//       width="100%"
+//       height="600px"
+//       style={{ border: 'none' }}
+//     />
+//   );
+// };
 const ResumePreview: React.FC<ResumePreviewProps> = ({ selectedCandidate }) => {
+  // console.log(selectedCandidate)
   return (
     <div className="grid-item preview-section">
       <div className="card">
@@ -29,9 +67,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ selectedCandidate }) => {
             {/* <div>{selectedCandidate.aiSummary}</div> */}
             <div className="preview-text">
               {selectedCandidate.resume ? (
-                <embed
+                // <PDFViewer selectedCandidate={selectedCandidate} />
+                <iframe
                   title="Resume PDF Preview"
-                  src={`data:application/pdf;base64,${selectedCandidate.resume}`}
+                  src={`/static/pdf/${selectedCandidate.resume_name}`}
                   width="100%"
                   height="600px"
                   style={{ border: 'none' }}
