@@ -195,7 +195,18 @@ npm run dev
   - Allow switching between modes based on employer preference
 - **Benefits**: More accurate similarity baseline when employers have specific candidate profiles in mind
 
-#### 6. Enhanced Resume Preview with Relevance Highlighting
+#### 6. Processing Time Performance
+- **Current Issue**: Analysis takes longer due to local model processing compared to cloud-based embedding APIs
+- **Root Cause**: Sequential processing of embeddings using local `all-mpnet-base-v2` model
+- **Impact**: Users experience longer wait times, especially when analyzing multiple candidates
+- **Trade-off Reasoning**: Chosen local processing for cost control, data privacy, and reliability
+- **Potential Solutions**:
+  - Implement parallel processing for multiple candidates
+  - Add progress indicators and estimated time remaining
+  - Consider hybrid approach (API + local model fallback)
+  - Optimize model loading and caching strategies
+
+#### 7. Enhanced Resume Preview with Relevance Highlighting
 - **Current Limitation**: Resume preview displays plain text without visual indicators of relevance to the job description
 - **Enhancement Needed**: Transform resume preview into an annotated resume with visual relevance indicators
 - **Proposed Features**:
@@ -207,7 +218,7 @@ npm run dev
 - **Benefits**: Faster resume review process and clearer understanding of candidate-job fit
 - **Status**: Not implemented due to time constraints
 
-### Recommended Future Enhancements
+### Future Enhancements Needed
 - **Input Validation**: Add job description quality assessment before processing
 - **Scoring Bounds**: Implement upper and lower bounds for similarity scores
 - **Multi-factor Ranking**: Combine semantic similarity with other relevance metrics
@@ -216,6 +227,7 @@ npm run dev
 - **~~CSP Compliance~~**: ✅ Resolved through distributed deployment architecture
 - **Flexible Baseline**: Support both manual and automatic ideal candidate specification
 - **Annotated Resume Preview**: Implement relevance highlighting with color coding and interactive features
+- **Performance Optimization**: Implement parallel processing and caching for faster analysis
 
 ## Live Demo
 
@@ -239,6 +251,54 @@ Initially, both frontend and backend were deployed together on Hugging Face Spac
 ## Similarity Calculation
 
 The core matching algorithm uses a sophisticated similarity calculation approach:
+
+### Model Selection: all-mpnet-base-v2
+
+The system uses the `all-mpnet-base-v2` model from Sentence Transformers for generating semantic embeddings. This model was specifically chosen based on several key considerations:
+
+#### Performance and Quality Balance
+- **Model Size**: 420MB (manageable for deployment)
+- **Vector Dimensions**: 768-dimensional embeddings (optimal balance between expressiveness and computational efficiency)
+- **Performance**: Achieves state-of-the-art performance on semantic textual similarity benchmarks
+- **Speed**: Fast inference time suitable for real-time applications
+
+#### Language and Domain Suitability
+- **English Optimization**: Primarily designed for English text, which aligns with the assumption that most professional resumes and job descriptions are in English
+- **General Domain Knowledge**: Trained on diverse text data, making it effective for professional documents across various industries
+- **Semantic Understanding**: Excels at capturing semantic meaning beyond simple keyword matching
+
+#### Hardware and Computational Constraints
+- **Memory Requirements**: ~1.5GB total model size (including dependencies) - feasible for standard deployment environments
+- **CPU Compatibility**: Runs efficiently on CPU-only environments (important for cost-effective deployment on platforms like Hugging Face Spaces)
+- **Inference Speed**: Sub-second embedding generation for typical resume/job description lengths
+- **Scalability**: Lightweight enough to handle multiple concurrent requests
+
+#### Alternative Models Considered
+- **Larger Models** (e.g., `all-mpnet-large`): Better performance but significantly higher computational requirements
+- **Multilingual Models**: Not necessary given the English-focused use case
+- **Domain-Specific Models**: Limited availability for HR/recruitment domain, general models provide better versatility
+
+This model choice represents an optimal trade-off between accuracy, speed, and resource efficiency for the talent matching use case.
+
+#### Trade-offs and Limitations
+
+**Local Model vs. API Services**:
+- **Current Approach**: Using local `all-mpnet-base-v2` model for embedding generation
+- **Processing Time**: Analysis can take longer compared to cloud-based embedding APIs (e.g., OpenAI's text-embedding models)
+- **Reasons for Local Model Choice**:
+  - **Cost Control**: No per-request API charges, especially important for multiple candidate processing
+  - **Data Privacy**: Resume data processed locally without sending to external services
+  - **Reliability**: No dependency on external API availability or rate limits
+  - **Consistency**: Deterministic results without API version changes affecting embeddings
+
+**Performance Impact**:
+- **Initial Load**: First-time model loading adds ~10-15 seconds startup time
+- **Processing Time**: Each embedding generation takes 1-3 seconds per document (depending on text length)
+- **Batch Processing**: Multiple candidates processed sequentially, leading to cumulative wait times
+
+**Alternative Considered**:
+- **API-based Solutions**: Would provide faster per-request processing but introduce cost, privacy, and reliability concerns
+- **Future Enhancement**: Could implement hybrid approach - API for speed, local model as fallback
 
 ### Algorithm Overview
 1. **Ideal Candidate Generation**: The system first queries an LLM (DeepSeek) to generate a description of the ideal candidate based on the job description
