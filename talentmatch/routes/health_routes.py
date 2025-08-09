@@ -2,7 +2,7 @@
 Health check and basic routes
 """
 from flask import Blueprint, jsonify
-
+from flask import  render_template
 
 def create_health_routes():
     """Create health check routes"""
@@ -10,7 +10,7 @@ def create_health_routes():
     
     @health_bp.route('/')
     def index():
-        """Health check endpoint"""
+        return render_template('index.html')
         return jsonify({
             'message': 'Candidate Recommendation Engine API',
             'status': 'running',

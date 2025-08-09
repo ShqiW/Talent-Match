@@ -6,5 +6,6 @@ export interface Candidate {
   info: string;
   similarityScore?: number;
   aiSummary?: string;
+  resume_name?: string; // Name of the resume file
 }
 

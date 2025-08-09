@@ -53,6 +53,7 @@ export const processCandidatesWithAPI = async (
         info: candidate.resume_text || '',
         similarityScore: candidate.similarity_score,
         aiSummary: candidate.summary,
+        resume_name: candidate.resume_name || '',
       }))
       : [];
 

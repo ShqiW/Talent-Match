@@ -1,3 +1,5 @@
 tm_env/
 node_modules/
 .env
+*.pyc
+uploads/
