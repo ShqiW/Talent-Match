@@ -155,6 +155,68 @@ npm run dev
 4. Upload PDF resumes or input text
 5. Click "Analyze" to get ranked matching results
 
+## Known Issues and Future Improvements
+
+### Current Limitations
+
+#### 1. Invalid Job Description Handling
+- **Issue**: When job descriptions contain meaningless text strings (e.g., "dsfdse" or other gibberish), the similarity scores can exceed 100%
+- **Root Cause**: The ideal candidate generation becomes unreliable with invalid input, leading to unstable baseline similarity calculations
+- **Impact**: Distorted scoring that doesn't reflect actual job-candidate compatibility
+- **Status**: Input validation for job description quality has not been implemented due to time constraints
+
+#### 2. Limited Discrimination for Unrelated Resumes
+- **Issue**: Among candidates with low relevance to the job position, similarity scores show minimal differentiation
+- **Root Cause**: When most candidates are poor matches, the relative scoring system struggles to meaningfully distinguish between different levels of irrelevance
+- **Impact**: Reduced ranking effectiveness when the candidate pool lacks strong matches
+- **Potential Solutions**: 
+  - Implement absolute minimum threshold filtering
+  - Add secondary ranking criteria for tie-breaking
+  - Enhance embedding models with domain-specific fine-tuning
+
+#### 3. UI and Presentation Issues
+- **Analysis Display Format**: The top-K candidate analysis is currently generated in markdown format, resulting in poor presentation quality in the UI
+- **Root Cause**: Raw markdown text is displayed without proper rendering, making the analysis difficult to read
+- **Impact**: Reduced user experience and readability of candidate evaluations
+- **Proposed Solution**: Implement proper markdown-to-HTML rendering or restructure analysis output format
+
+#### 4. PDF Preview Deployment Issues ✅ **RESOLVED**
+- **Previous Issue**: Resume preview functionality failed on Hugging Face deployment due to Content Security Policy (CSP) restrictions
+- **Root Cause**: CSP headers prevented PDF display in embedded viewers or iframes
+- **Solution Implemented**: Migrated frontend to GitHub Pages while keeping backend on Hugging Face Spaces
+- **Current Status**: PDF preview functionality now works correctly in the distributed deployment setup
+
+#### 5. Ideal Candidate Generation Flexibility
+- **Current Limitation**: The system automatically generates ideal candidate descriptions using LLM without employer input
+- **Enhancement Needed**: Provide employers with the option to upload their own ideal candidate resume
+- **Proposed Workflow**:
+  - **Option A**: Employer uploads an ideal candidate resume (PDF format)
+  - **Option B**: System auto-generates ideal candidate description (current behavior)
+  - Allow switching between modes based on employer preference
+- **Benefits**: More accurate similarity baseline when employers have specific candidate profiles in mind
+
+#### 6. Enhanced Resume Preview with Relevance Highlighting
+- **Current Limitation**: Resume preview displays plain text without visual indicators of relevance to the job description
+- **Enhancement Needed**: Transform resume preview into an annotated resume with visual relevance indicators
+- **Proposed Features**:
+  - **Color Coding**: Highlight sentences/phrases with high relevance to job requirements in different colors
+  - **Text Emphasis**: Use bold formatting for key skills and experiences that match job criteria
+  - **Relevance Scoring**: Display inline relevance scores for different resume sections
+  - **Interactive Highlighting**: Allow users to hover over highlighted text to see why it's relevant
+- **Implementation Approach**: Use NLP techniques to identify relevant text segments and apply visual annotations
+- **Benefits**: Faster resume review process and clearer understanding of candidate-job fit
+- **Status**: Not implemented due to time constraints
+
+### Recommended Future Enhancements
+- **Input Validation**: Add job description quality assessment before processing
+- **Scoring Bounds**: Implement upper and lower bounds for similarity scores
+- **Multi-factor Ranking**: Combine semantic similarity with other relevance metrics
+- **Error Handling**: Graceful degradation when ideal candidate generation fails
+- **UI Improvements**: Implement proper markdown rendering for analysis results
+- **~~CSP Compliance~~**: ✅ Resolved through distributed deployment architecture
+- **Flexible Baseline**: Support both manual and automatic ideal candidate specification
+- **Annotated Resume Preview**: Implement relevance highlighting with color coding and interactive features
+
 ## Live Demo
 
 The application uses a distributed deployment approach to overcome platform limitations:
@@ -202,51 +264,3 @@ cos(A, B) = (A · B) / (||A|| × ||B||)
 - **Consistent Interpretation**: Scores closer to 1.0 indicate better alignment with the ideal candidate profile
 - **Context Awareness**: The ideal candidate baseline adapts to different job requirements
 - **Improved Ranking**: Provides more meaningful comparisons across different types of positions
-### Improvement Needed for This Approach
-
-The current similarity calculation approach has several limitations that could be addressed in future iterations:
-
-#### 1. Invalid Job Description Handling
-- **Issue**: When job descriptions contain meaningless text strings (e.g., "dsfdse" or other gibberish), the similarity scores can exceed 100%
-- **Root Cause**: The ideal candidate generation becomes unreliable with invalid input, leading to unstable baseline similarity calculations
-- **Impact**: Distorted scoring that doesn't reflect actual job-candidate compatibility
-- **Status**: Input validation for job description quality has not been implemented due to time constraints
-
-#### 2. Limited Discrimination for Unrelated Resumes
-- **Issue**: Among candidates with low relevance to the job position, similarity scores show minimal differentiation
-- **Root Cause**: When most candidates are poor matches, the relative scoring system struggles to meaningfully distinguish between different levels of irrelevance
-- **Impact**: Reduced ranking effectiveness when the candidate pool lacks strong matches
-- **Potential Solutions**: 
-  - Implement absolute minimum threshold filtering
-  - Add secondary ranking criteria for tie-breaking
-  - Enhance embedding models with domain-specific fine-tuning
-
-#### 3. UI and Presentation Issues
-- **Analysis Display Format**: The top-K candidate analysis is currently generated in markdown format, resulting in poor presentation quality in the UI
-- **Root Cause**: Raw markdown text is displayed without proper rendering, making the analysis difficult to read
-- **Impact**: Reduced user experience and readability of candidate evaluations
-- **Proposed Solution**: Implement proper markdown-to-HTML rendering or restructure analysis output format
-
-#### 4. PDF Preview Deployment Issues ✅ **RESOLVED**
-- **Previous Issue**: Resume preview functionality failed on Hugging Face deployment due to Content Security Policy (CSP) restrictions
-- **Root Cause**: CSP headers prevented PDF display in embedded viewers or iframes
-- **Solution Implemented**: Migrated frontend to GitHub Pages while keeping backend on Hugging Face Spaces
-- **Current Status**: PDF preview functionality now works correctly in the distributed deployment setup
-
-#### 5. Ideal Candidate Generation Flexibility
-- **Current Limitation**: The system automatically generates ideal candidate descriptions using LLM without employer input
-- **Enhancement Needed**: Provide employers with the option to upload their own ideal candidate resume
-- **Proposed Workflow**:
-  - **Option A**: Employer uploads an ideal candidate resume (PDF format)
-  - **Option B**: System auto-generates ideal candidate description (current behavior)
-  - Allow switching between modes based on employer preference
-- **Benefits**: More accurate similarity baseline when employers have specific candidate profiles in mind
-
-#### 6. Recommended Future Enhancements
-- **Input Validation**: Add job description quality assessment before processing
-- **Scoring Bounds**: Implement upper and lower bounds for similarity scores
-- **Multi-factor Ranking**: Combine semantic similarity with other relevance metrics
-- **Error Handling**: Graceful degradation when ideal candidate generation fails
-- **UI Improvements**: Implement proper markdown rendering for analysis results
-- **~~CSP Compliance~~**: ✅ Resolved through distributed deployment architecture
-- **Flexible Baseline**: Support both manual and automatic ideal candidate specification
