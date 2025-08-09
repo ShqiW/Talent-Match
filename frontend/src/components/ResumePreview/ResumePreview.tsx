@@ -68,9 +68,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ selectedCandidate }) => {
             <div className="preview-text">
               {selectedCandidate.resume ? (
                 // <PDFViewer selectedCandidate={selectedCandidate} />
-                <iframe
+                <embed
                   title="Resume PDF Preview"
-                  src={`/static/pdf/${selectedCandidate.resume_name}`}
+                  src={`https://shqiw-talentmatch-backend.hf.space/static/pdf/${selectedCandidate.resume_name}`}
                   width="100%"
                   height="600px"
                   style={{ border: 'none' }}
