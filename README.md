@@ -2,6 +2,7 @@
 
 AI-powered resume matching system that uses machine learning to intelligently match candidate resumes with job descriptions.
 
+
 ## Project Overview
 
 Talent-Match is a full-stack application that analyzes the compatibility between candidate resumes and job requirements through semantic similarity analysis. The system consists of a React TypeScript frontend and a Flask Python backend, integrated with advanced machine learning capabilities.
@@ -252,6 +253,7 @@ Initially, both frontend and backend were deployed together on Hugging Face Spac
 
 The core matching algorithm uses a sophisticated similarity calculation approach:
 
+
 ### Algorithm Overview
 1. **Ideal Candidate Generation**: The system first queries an LLM (DeepSeek) to generate a description of the ideal candidate based on the job description
 2. **Embedding Creation**: Both the job description and ideal candidate description are converted to 768-dimensional vectors using the `all-mpnet-base-v2` model
@@ -279,6 +281,7 @@ cos(A, B) = (A · B) / (||A|| × ||B||)
 
 
 ## Model Selection: all-mpnet-base-v2
+
 
 The system uses the `all-mpnet-base-v2` model from Sentence Transformers for generating semantic embeddings. This model was specifically chosen based on several key considerations:
 
@@ -326,4 +329,31 @@ This model choice represents an optimal trade-off between accuracy, speed, and r
 - **API-based Solutions**: Would provide faster per-request processing but introduce cost, privacy, and reliability concerns
 - **Future Enhancement**: Could implement hybrid approach - API for speed, local model as fallback
 
+
+### Algorithm Overview
+1. **Ideal Candidate Generation**: The system first queries an LLM (DeepSeek) to generate a description of the ideal candidate based on the job description
+2. **Embedding Creation**: Both the job description and ideal candidate description are converted to 768-dimensional vectors using the `all-mpnet-base-v2` model
+3. **Baseline Similarity**: Calculate cosine similarity between job description and ideal candidate embeddings as the upper bound reference
+4. **Candidate Scoring**: For each candidate:
+   - Generate embedding from their resume text
+   - Calculate cosine similarity with job description embedding
+   - Normalize by dividing by the baseline similarity: `candidate_score = similarity(job, candidate) / similarity(job, ideal_candidate)`
+
+### Mathematical Formula
+```
+similarity_score = cos(job_embedding, candidate_embedding) / cos(job_embedding, ideal_candidate_embedding)
+```
+
+
+Where cosine similarity is calculated as:
+```
+cos(A, B) = (A · B) / (||A|| × ||B||)
+```
+
+
+### Benefits of This Approach
+- **Dynamic Scaling**: Scores are relative to the theoretical best match for each specific job
+- **Consistent Interpretation**: Scores closer to 1.0 indicate better alignment with the ideal candidate profile
+- **Context Awareness**: The ideal candidate baseline adapts to different job requirements
+- **Improved Ranking**: Provides more meaningful comparisons across different types of positions
 
