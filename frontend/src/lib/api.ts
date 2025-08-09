@@ -72,7 +72,7 @@ class ApiService {
 
   async verifyInvitation(invitationCode?: string): Promise<ApiResponse<{ valid: boolean }>> {
     const payload = invitationCode ? { invitation_code: invitationCode } : {};
-    return this.request<{ valid: boolean }>(`/api/verify-invitation`, {
+    return this.request<{ valid: boolean }>(`https://shqiw-talentmatch-backend.hf.space/api/verify-invitation`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
@@ -102,7 +102,7 @@ class ApiService {
 
     console.log('Sending recommendation request with payload:', payload);
 
-    return this.request<RecommendationResponse>('/api/match', {
+    return this.request<RecommendationResponse>('https://shqiw-talentmatch-backend.hf.space/api/match', {
       method: 'POST',
       body: JSON.stringify(payload),
       // files: candidates.map(candidate => candidate.resume)
@@ -110,7 +110,7 @@ class ApiService {
   }
 
   async healthCheck(): Promise<ApiResponse<{ status: string }>> {
-    return this.request<{ status: string }>('/api/health');
+    return this.request<{ status: string }>('https://shqiw-talentmatch-backend.hf.space/api/health');
   }
 }
 
