@@ -1,20 +1,5 @@
 import type { Candidate } from '../shared/types/index';
 
-// Support environment variable configuration for API URL
-const getApiBaseUrl = () => {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
-  }
-
-  const hostname = window.location.hostname;
-  const port = window.location.port;
-
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:5000';
-  }
-
-  return `${window.location.protocol}//${hostname}:5000`;
-};
 
 // const API_BASE_URL = getApiBaseUrl();
 const API_BASE_URL = ""

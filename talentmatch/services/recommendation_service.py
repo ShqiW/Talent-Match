@@ -65,7 +65,7 @@ class RecommendationService:
         self,
         job_description: str,
         candidates_data: List[Dict[str, Any]],
-        top_k: int = 10,
+        top_k: int = 5,
         min_similarity: float = 0.5,
     ) -> Dict[str, Any]:
         """Real-time candidate matching"""

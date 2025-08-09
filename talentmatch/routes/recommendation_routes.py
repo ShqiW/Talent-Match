@@ -4,7 +4,7 @@ Recommendation related routes
 from flask import Blueprint, request, jsonify
 from talentmatch.services.recommendation_service import RecommendationService
 from talentmatch.services.candidate_service import CandidateService
-
+from talentmatch import INVITATION_CODE
 
 def create_recommendation_routes(
     recommendation_service: RecommendationService,
@@ -72,7 +72,7 @@ def create_recommendation_routes(
     def verify_invitation():
         """Verify invitation code"""
         data = request.get_json() or {}
-        configured_code = app_config.get('INVITATION_CODE', '')
+        configured_code = INVITATION_CODE
         if not configured_code:
             # Reject if invitation code not set, prevent bypass
             return jsonify({'error': 'Invitation code not configured'}), 200
@@ -93,7 +93,7 @@ def create_recommendation_routes(
             return jsonify({'error': 'No data provided'}), 400
 
         # Validate invitation code (if enabled in configuration)
-        configured_code = app_config.get('INVITATION_CODE', '')
+        configured_code = INVITATION_CODE
         provided_code = (data.get('invitation_code') or '').strip()
         if not configured_code or provided_code != configured_code:
             return jsonify({'error': 'Invalid or missing invitation code'}), 403

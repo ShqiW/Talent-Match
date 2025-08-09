@@ -73,6 +73,7 @@ class RecommendationEngine:
                         # 'annotated_resume': annotated_resume_base64,
                         'resume_text': candidate["resume_text"],
                         'resume': candidate.get('resume', ''),
+                        'resume_name': candidate.get('resume_name', ''),
                     }, )
 
         # Sort by similarity
