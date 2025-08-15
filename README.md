@@ -1,3 +1,18 @@
+---
+title: "Talent Match"
+emoji: 🎯
+colorFrom: yellow
+colorTo: blue
+sdk: gradio
+sdk_version: 5.23.2
+app_file: talentmatch/app.py
+pinned: false
+python_version: 3.12.4
+custom_headers:
+  cross-origin-embedder-policy: unsafe-none
+  cross-origin-opener-policy: same-origin
+  cross-origin-resource-policy: cross-origin
+---
 # Talent-Match
 
 AI-powered resume matching system that uses machine learning to intelligently match candidate resumes with job descriptions.

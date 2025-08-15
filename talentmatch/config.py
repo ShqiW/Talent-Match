@@ -15,4 +15,3 @@ class Config:
     # API configuration
     MAX_CANDIDATES = 5
     MIN_SIMILARITY_THRESHOLD = 0.1
-    # Invitation code for access control (empty disables the check)
