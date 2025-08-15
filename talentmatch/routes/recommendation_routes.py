@@ -3,12 +3,11 @@ Recommendation related routes
 """
 from flask import Blueprint, request, jsonify
 from talentmatch.services.recommendation_service import RecommendationService
-from talentmatch.services.candidate_service import CandidateService
 from talentmatch import INVITATION_CODE
+
 
 def create_recommendation_routes(
     recommendation_service: RecommendationService,
-    candidate_service: CandidateService,
     app_config,
 ):
     """Create recommendation routes"""
@@ -72,14 +71,16 @@ def create_recommendation_routes(
     def verify_invitation():
         """Verify invitation code"""
         data = request.get_json() or {}
-        configured_code = INVITATION_CODE
-        if not configured_code:
+        configured_codes = INVITATION_CODE
+        print(configured_codes)
+        if len(configured_codes) <= 0:
             # Reject if invitation code not set, prevent bypass
             return jsonify({'error': 'Invitation code not configured'}), 200
 
         provided_code = (data.get('invitation_code') or '').strip()
-        if provided_code != configured_code:
-            return jsonify({'error': 'Invalid or missing invitation code'}), 403
+        if provided_code not in configured_codes:
+            return jsonify({'error':
+                            'Invalid or missing invitation code'}), 403
 
         return jsonify({'valid': True}), 200
 
@@ -93,10 +94,14 @@ def create_recommendation_routes(
             return jsonify({'error': 'No data provided'}), 400
 
         # Validate invitation code (if enabled in configuration)
-        configured_code = INVITATION_CODE
+        configured_codes = INVITATION_CODE
         provided_code = (data.get('invitation_code') or '').strip()
-        if not configured_code or provided_code != configured_code:
-            return jsonify({'error': 'Invalid or missing invitation code'}), 403
+        if len(configured_codes) <= 0:
+            # Reject if invitation code not set, prevent bypass
+            return jsonify({'error': 'Invitation code not configured'}), 200
+        if provided_code not in configured_codes:
+            return jsonify({'error':
+                            'Invalid or missing invitation code'}), 403
 
         job_description = data.get('job_description', '').strip()
         candidates_data = data.get('candidates')

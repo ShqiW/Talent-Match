@@ -46,7 +46,6 @@ def create_app():
     app.register_blueprint(
         create_recommendation_routes(
             recommendation_service,
-            candidate_service,
             app.config,
         ))
 
