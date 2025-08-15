@@ -72,7 +72,6 @@ def create_recommendation_routes(
         """Verify invitation code"""
         data = request.get_json() or {}
         configured_codes = INVITATION_CODE
-        print(configured_codes)
         if len(configured_codes) <= 0:
             # Reject if invitation code not set, prevent bypass
             return jsonify({'error': 'Invitation code not configured'}), 200
